@@ -1,64 +1,30 @@
 import boto3
 
+def check_aws_communication():
+    try:
+        # Replace 'your_region_name' with the AWS region you want to communicate with (e.g., 'us-east-1', 'eu-west-1', etc.)
+        # If you're not sure about the region, you can use 'us-east-1' as it's a commonly used region.
+        region_name = 'us-east-1'
 
-# Initialize AWS SDK clients
-def initialize_clients(access_key, secret_key):
-    session = boto3.Session(
-        aws_access_key_id=access_key,
-        aws_secret_access_key=secret_key,
-    )
-    s3_client = session.client('s3')
-    cf_client = session.client('cloudfront')
-    return s3_client, cf_client
+        # Create a Boto3 session
+        session = boto3.session.Session()
 
+        # Create a low-level service client using the session
+        # Replace 'your_service_name' with the AWS service you want to interact with (e.g., 's3', 'ec2', 'dynamodb', etc.)
+        # You can find the service names in the Boto3 documentation for the respective service.
+        client = session.client('s3', region_name=region_name)
 
-# Function to pull billing details
-def get_billing_details():
-    client = boto3.client('ce')  # Cost Explorer client
-    response = client.get_cost_and_usage(
-        TimePeriod={
-            'Start': '2023-07-01',
-            'End': '2023-07-25',
-        },
-        Granularity='DAILY',
-        Metrics=['BlendedCost'],
-    )
-    return response['ResultsByTime']
+        # Use a simple API call to check if the communication is successful
+        response = client.list_buckets()
 
+        # If the communication is successful, 'Buckets' key should be present in the response.
+        if 'Buckets' in response:
+            print("AWS communication using Boto3 is successful!")
+        else:
+            print("AWS communication using Boto3 failed.")
 
-# Function to upload files to S3 and CloudFront
-def upload_to_s3_and_cloudfront(bucket_name, file_path, distribution_id):
-    s3_client, cf_client = initialize_clients(ACCESS_KEY, SECRET_KEY)
-
-    # Upload file to S3
-    with open(file_path, 'rb') as file:
-        s3_client.upload_fileobj(file, bucket_name, file_path)
-
-    # Invalidate CloudFront distribution cache
-    cf_client.create_invalidation(
-        DistributionId=distribution_id,
-        InvalidationBatch={
-            'Paths': {
-                'Quantity': 1,
-                'Items': ['/*'],
-            },
-            'CallerReference': 'unique-invalidation-id',
-        }
-    )
-
+    except Exception as e:
+        print(f"Error: {str(e)}")
 
 if __name__ == "__main__":
-    ACCESS_KEY = 'your-access-key'
-    SECRET_KEY = 'your-secret-key'
-    BUCKET_NAME = 'your-s3-bucket-name'
-    FILE_PATH = 'path/to/your/file.txt'
-    DISTRIBUTION_ID = 'your-cloudfront-distribution-id'
-
-    s3_client, cf_client = initialize_clients(ACCESS_KEY, SECRET_KEY)
-
-    # Get billing details
-    billing_details = get_billing_details()
-    print(billing_details)
-
-    # Upload file to S3 and invalidate CloudFront cache
-    upload_to_s3_and_cloudfront(BUCKET_NAME, FILE_PATH, DISTRIBUTION_ID)
+    check_aws_communication()
