@@ -1,0 +1,22 @@
+import boto3
+
+def create_s3_bucket(bucket_name):
+    try:
+        # Create an S3 client
+        s3_client = boto3.client('s3')
+
+        # Create the S3 bucket without specifying the region constraint
+        response = s3_client.create_bucket(
+            Bucket=bucket_name,
+        )
+
+        print(f"Bucket '{bucket_name}' created successfully.")
+        return response
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return None
+
+if __name__ == "__main__":
+    bucket_name = 's3bucbill'
+    create_s3_bucket(bucket_name)
